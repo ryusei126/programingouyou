@@ -13,14 +13,12 @@ import {
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { useRouter } from 'next/navigation';
 import { apiFetch, errorHandling } from '@/lib/apiFetch';
-import MessageBox from "@/components/messageBox";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState(() => {
-    // 初期エラーをURLフラグメントから取得
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
       if (hash) {
@@ -36,7 +34,7 @@ export default function LoginPage() {
   });
   const router = useRouter();
 
-useEffect(() => {
+  useEffect(() => {
     (async () => {
       if (localStorage.getItem('user_session')) {
         router.push('/memos');
@@ -54,7 +52,7 @@ useEffect(() => {
     })();
   }, [router]);
 
-const login = async () => {
+  const login = async () => {
     await errorHandling(async () => {
       const json = await apiFetch('/api/auth/login', {
         method: 'POST',
@@ -70,14 +68,14 @@ const login = async () => {
     }, setError);
   };
 
-const register = async () => {
+  const register = async () => {
     await errorHandling(async () => {
       await apiFetch('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
       setSuccessMessage(
-        '登録リクエストを送信しました。Supabaseから確認メールが届いているか確認してください。'
+        '登録リクエストを送信しました。Supabaseから確認メールをご確認ください。'
       );
     }, setError);
   };
@@ -86,24 +84,33 @@ const register = async () => {
     window.location.href = '/api/auth/oauth2/github';
   };
 
-
   return (
     <div className="w-full flex items-center justify-center mt-24 px-4">
-      <Card className="w-full max-w-md shadow-xl" variant="outlined">
-        <CardContent>
+      <Card
+        className="w-full max-w-md"
+        variant="outlined"
+        sx={{
+          borderRadius: 4,
+          p: 1,
+          boxShadow: '0 8px 25px rgba(0,0,0,0.08)',
+          transition: '0.2s',
+          '&:hover': { boxShadow: '0 12px 35px rgba(0,0,0,0.12)' },
+        }}
+      >
+        <CardContent sx={{ px: 4, py: 5 }}>
           <Typography
             variant="h5"
-            sx={{ mb: 2 }}
-            className="text-center font-bold"
+            sx={{ mb: 3 }}
+            className="text-center font-semibold"
           >
-            ログイン／新規登録
+            ログイン / 新規登録
           </Typography>
 
           <TextField
             label="メールアドレス"
             fullWidth
             type="email"
-            sx={{ mb: 1 }}
+            sx={{ mb: 2 }}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -112,19 +119,22 @@ const register = async () => {
             label="パスワード"
             fullWidth
             type="password"
-            sx={{ mb: 1 }}
+            sx={{ mb: 3 }}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
           <Button
             variant="contained"
-            className="w-full py-2"
+            fullWidth
             sx={{
-              mb: 1,
-              bgcolor: 'gray',
-              color: 'white',
-              '&:hover': { opacity: 0.8 },
+              mb: 2,
+              bgcolor: '#1976d2',
+              py: 1.4,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 'bold',
+              '&:hover': { bgcolor: '#135ba1' },
             }}
             onClick={login}
           >
@@ -132,13 +142,13 @@ const register = async () => {
           </Button>
 
           <Button
-            variant="contained"
-            className="w-full py-2"
+            variant="outlined"
+            fullWidth
             sx={{
-              mb: 1,
-              bgcolor: 'gray',
-              color: 'white',
-              '&:hover': { opacity: 0.8 },
+              mb: 3,
+              py: 1.4,
+              borderRadius: 2,
+              textTransform: 'none',
             }}
             onClick={register}
           >
@@ -147,11 +157,18 @@ const register = async () => {
 
           <Button
             variant="contained"
-            className="w-full py-2 flex items-center gap-2"
+            fullWidth
             sx={{
-              bgcolor: 'black',
+              bgcolor: '#000',
               color: 'white',
-              '&:hover': { opacity: 0.8 },
+              py: 1.4,
+              borderRadius: 2,
+              textTransform: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              justifyContent: 'center',
+              '&:hover': { bgcolor: '#222' },
             }}
             onClick={loginGithub}
           >
@@ -171,6 +188,7 @@ const register = async () => {
           {error}
         </Alert>
       </Snackbar>
+
       <Snackbar
         open={!!successMessage}
         autoHideDuration={6000}

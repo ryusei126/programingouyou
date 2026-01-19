@@ -17,6 +17,9 @@ public class AuthController {
     @Autowired
     private SupabaseAuthService supabaseAuthService;
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     /**
      * アカウント登録を行います
      * @param request アカウント情報
@@ -25,7 +28,7 @@ public class AuthController {
      */
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody AuthRequest request, UriComponentsBuilder uriBuilder) {
-        String redirectTo = uriBuilder.replacePath("/").build().toUriString();
+        String redirectTo = getRedirectUrl(uriBuilder);
         Map<String, Object> result = supabaseAuthService.signUp(request.getEmail(), request.getPassword(), redirectTo);
         return result.containsKey("id") 
                 ? ResponseEntity.ok(Map.of("message", "Registration successful. Please check your email for confirmation."))
@@ -62,7 +65,7 @@ public class AuthController {
      * @return 実行結果
      */
     @PostMapping("/logout")
-   public ResponseEntity<Map<String, Object>> logout(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<Map<String, Object>> logout(@RequestHeader("Authorization") String authorizationHeader) {
         supabaseAuthService.logout(authorizationHeader.substring(7));
         return ResponseEntity.ok(Map.of("message", "Logout successful."));
     }
@@ -74,11 +77,20 @@ public class AuthController {
      */
     @GetMapping("/oauth2/github")
     public void redirectToGitHub(HttpServletResponse response, UriComponentsBuilder uriBuilder) throws IOException {
-        String redirectTo = uriBuilder.replacePath("/").build().toUriString();
+        String redirectTo = getRedirectUrl(uriBuilder);
         String supabaseAuthGitHubUrl = supabaseAuthService.getGitHubSignInUrl(redirectTo);
         response.sendRedirect(supabaseAuthGitHubUrl);
     }
 
-
+    /**
+     * リダイレクトURLを取得します
+     * @param uriBuilder URI構築
+     * @return リダイレクトURL
+     */
+    private String getRedirectUrl(UriComponentsBuilder uriBuilder) {
+        return !frontendUrl.isEmpty() 
+            ? UriComponentsBuilder.fromUriString(frontendUrl).replacePath("/").build().toUriString() 
+            : uriBuilder.replacePath("/").build().toUriString();
+    }
 
 }
